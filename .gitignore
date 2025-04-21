@@ -1,0 +1,20 @@
+# Node modules folder
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files for sensitive info (e.g., GitHub API token)
+.env
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Build directories (if any)
+dist/
+build/
+
+# Optional: If you're using a code editor like VSCode
+.vscode/
