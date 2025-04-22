@@ -32,10 +32,13 @@ async function getContributions() {
       }
     });
 
-    console.log(`🌟 You made ${totalContributionsToday} contribution(s) today!`);
+    return totalContributionsToday; 
   } catch (err) {
     console.error('❌ Error fetching data:', err.message);
   }
 }
 
-getContributions();
+(async () => {
+  const contributions = await getContributions();
+  console.log(`🌱 Contributions today: ${contributions}`);
+})();
