@@ -1,44 +1,55 @@
-require('dotenv').config();
-const axios = require('axios');
+require("dotenv").config();
+const axios = require("axios");
 
 const token = process.env.GITHUB_TOKEN;
 const username = process.env.GITHUB_USERNAME;
 
 const headers = {
-  Authorization: `token ${token}`,
-  'User-Agent': username,
+  Authorization: `Bearer ${token}`,
+  "User-Agent": username,
 };
+
+const query = `
+{
+  user(login: "${username}") {
+    contributionsCollection {
+      contributionCalendar {
+        weeks {
+          contributionDays {
+            date
+            contributionCount
+          }
+        }
+      }
+    }
+  }
+}
+`;
 
 async function getContributions() {
   try {
-    const res = await axios.get(`https://api.github.com/users/${username}/events`, {
-      headers,
-    });
+    const response = await axios.post('https://api.github.com/graphql',
+      {query},
+      {headers}
+    ); 
 
-    const today = new Date().toISOString().slice(0, 10);
-    let totalContributionsToday = 0;
+    const days = response.data.data.user.contributionsCollection.contributionCalendar.weeks
+      .flatMap(week => week.contributionDays);
 
-    // Iterate through each event and count contributions for the day
-    res.data.forEach(event => {
-      const eventDate = new Date(event.created_at).toISOString().slice(0, 10);
+      const today = new Date().toISOString().slice(0, 10);
+      
+      const todayContrib = days.find(day => day.date === today);
+      return todayContrib;
+      
 
-      // Count contributions for PushEvent, CreateEvent, and PullRequestEvent
-      if (eventDate === today) {
-        if (event.type === 'PushEvent') {
-          totalContributionsToday += event.payload.commits.length;
-        } else if (event.type === 'CreateEvent' || event.type === 'PullRequestEvent') {
-          totalContributionsToday += 1;  // Increment by 1 for CreateEvent and PullRequestEvent
-        }
-      }
-    });
+      
 
-    return totalContributionsToday; 
   } catch (err) {
-    console.error('❌ Error fetching data:', err.message);
+    console.error("❌ Error fetching data:", err.message);
   }
 }
 
 (async () => {
   const contributions = await getContributions();
-  console.log(`🌱 Contributions today: ${contributions}`);
+  console.log(`🌱  Todays (${contributions.date}) contributionCount: ${contributions.contributionCount}`);
 })();
